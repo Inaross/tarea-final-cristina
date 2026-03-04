@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # --- ENTORNO RELACIONAL (MySQL) ---
+  mysql_db:
+    image: mysql:8.0
+    container_name: mysql_optimizacion
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: test_db
+      MYSQL_USER: devuser
+      MYSQL_PASSWORD: devpassword
+    ports:
+      - "3306:3306"
+    command:
+      - --slow_query_log=1
+      - --long_query_time=1
+      - --log-queries-not-using-indexes=1
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin_optimizacion
+    environment:
+      PMA_HOST: mysql_db
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql_db
+
+  # --- ENTORNO NoSQL (MongoDB) ---
+  mongodb:
+    image: mongo:latest
+    container_name: mongo_optimizacion
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: rootuser
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  mongo_express:
+    image: mongo-express
+    container_name: mongo_express_optimizacion
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: rootuser
+      ME_CONFIG_MONGODB_ADMINPASSWORD: rootpassword
+      ME_CONFIG_MONGODB_SERVER: mongodb
+      # Credenciales para entrar a la interfaz web de Mongo Express
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: password
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongodb
+
+volumes:
+  mysql_data:
+  mongo_data:
