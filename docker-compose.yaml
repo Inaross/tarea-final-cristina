@@ -25,6 +25,9 @@ services:
     environment:
       PMA_HOST: mysql_db
       MYSQL_ROOT_PASSWORD: rootpassword
+      # Aumentados los límites de subida de PHP para meter "chicha" (128 MB)
+      UPLOAD_LIMIT: 128M
+      MEMORY_LIMIT: 128M
     ports:
       - "8080:80"
     depends_on:
@@ -52,6 +55,8 @@ services:
       # Credenciales para entrar a la interfaz web de Mongo Express
       ME_CONFIG_BASICAUTH_USERNAME: admin
       ME_CONFIG_BASICAUTH_PASSWORD: password
+      # Tamaño máximo de subida para Mongo Express (ej. documentos JSON pesados)
+      ME_CONFIG_REQUEST_SIZE: 128mb
     ports:
       - "8081:8081"
     depends_on:
