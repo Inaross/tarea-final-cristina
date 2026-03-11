@@ -1,8 +1,8 @@
 import os
 
-def reducir_csv_por_tamano(ruta_origen, ruta_destino, tamano_max_mb=2):
-    # Convertir Megabytes a Bytes (2 MB = 2 * 1024 * 1024 bytes)
-    tamano_max_bytes = tamano_max_mb * 1024 * 1024
+def reducir_csv_por_tamano(ruta_origen, ruta_destino, tamano_max_mb=128):
+    # Aplicar un margen de seguridad del 5% para no chocar con el límite exacto de subida HTTP (128M)
+    tamano_max_bytes = int(tamano_max_mb * 1024 * 1024 * 0.95)
     tamano_actual = 0
 
     try:
@@ -45,6 +45,6 @@ def reducir_csv_por_tamano(ruta_origen, ruta_destino, tamano_max_mb=2):
 if __name__ == "__main__":
     # Define aquí las rutas de tus archivos
     archivo_entrada = 'D:\\Big Data Aplicado\\Optimizacion\\archive\\matchups.csv'
-    archivo_salida = 'D:\\Big Data Aplicado\\Optimizacion\\Codigo\\matchups2mb.csv'
+    archivo_salida = 'D:\\Big Data Aplicado\\Optimizacion\\Codigo\\matchups128mb.csv'
     
-    reducir_csv_por_tamano(archivo_entrada, archivo_salida, tamano_max_mb=2)
+    reducir_csv_por_tamano(archivo_entrada, archivo_salida, tamano_max_mb=128)
