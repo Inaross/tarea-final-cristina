@@ -8,60 +8,82 @@
 
 #DuckDB permite lanzar comandos SQL directamente sobre el archivo .csv como si fuera una tabla física, sin pasos intermedios.
 
-import duckdb
+import pandas as pd
+import time
 
-# ruta al archivo
-csv_path = 'D:/Big Data Aplicado/Optimizacion/archive/matchups.csv'
+# --- 1. CONFIGURACIÓN ---
+CSV_PATH = 'D:/Big Data Aplicado/Optimizacion/Codigo/matchups128mb.csv'
 
-# parametros de busqueda
-invocador = 'batata 12121212'
-campeon = 'Bard'
-min_kills = 15
+print(f"Cargando el dataset {CSV_PATH} en memoria RAM...")
+inicio_carga = time.time()
+df = pd.read_csv(CSV_PATH)
+# Estandarizamos todas las columnas a mayúsculas para evitar fallos
+df.columns = df.columns.str.upper()
+print(f"Dataset cargado en {time.time() - inicio_carga:.2f} segundos. Total filas: {len(df):,}\n")
 
-print("Test de consultas directas a CSV con duckdb\n")
 
-# buscar invocador
-print(f"> Buscando invocador: {invocador}")
-t0 = time.time()
-df_invocador = duckdb.query(f"SELECT * FROM '{csv_path}' WHERE SUMMONERNAME = '{invocador}'").df()
-t1 = time.time()
-print(df_invocador.head(2))
-print(f"Tiempo: {t1 - t0:.4f}s\n")
+# --- 2. LAS 3 CONSULTAS OBLIGATORIAS (ROJAS) ---
 
-# filtrar por campeon
-print(f"> Filtrando por campeon: {campeon}")
-t0 = time.time()
-df_campeon = duckdb.query(f"SELECT * FROM '{csv_path}' WHERE CHAMPION = '{campeon}'").df()
-t1 = time.time()
-print(f"Partidas encontradas: {len(df_campeon)}")
-print(f"Tiempo: {t1 - t0:.4f}s\n")
+def consulta_1_filtro_categoria(campeon_buscado):
+    """(Roja 1) Filtrar por Categoría: Equivalente a WHERE CHAMPION = 'X'"""
+    print(f"\nCONSULTA 1: Buscando partidas del campeón '{campeon_buscado}'...")
+    inicio = time.time()
+    
+    # Filtro exacto usando la variable
+    resultado = df[df['CHAMPION'].astype(str).str.lower() == campeon_buscado.lower()]
+    
+    tiempo_ms = (time.time() - inicio) * 1000
+    print(f"Tiempo de ejecución: {tiempo_ms:.2f} ms")
+    return resultado[['P_MATCH_ID', 'CHAMPION', 'WIN', 'KILLS', 'DEATHS']].head(3)
 
-# buscar victorias con x kills ordenado natural (mas oro)
-print(f"> Top 5 victorias con >{min_kills} kills ordenadas por oro")
-t0 = time.time()
-q_compleja = f"""
-    SELECT SUMMONERNAME, CHAMPION, GOLDEARNED 
-    FROM '{csv_path}' 
-    WHERE WIN = True AND KILLS > {min_kills} 
-    ORDER BY GOLDEARNED DESC 
-    LIMIT 5
-"""
-df_kills = duckdb.query(q_compleja).df()
-t1 = time.time()
-print(df_kills)
-print(f"Tiempo: {t1 - t0:.4f}s\n")
 
-# total de partidas por campeon
-print("> Partidas totales por campeon (top 5)")
-t0 = time.time()
-q_agrupada = f"""
-    SELECT CHAMPION, COUNT(*) as total 
-    FROM '{csv_path}' 
-    GROUP BY CHAMPION 
-    ORDER BY total DESC 
-    LIMIT 5
-"""
-df_agrupado = duckdb.query(q_agrupada).df()
-t1 = time.time()
-print(df_agrupado)
-print(f"Tiempo: {t1 - t0:.4f}s\n")
+def consulta_2_carrileadas(min_kills):
+    """Apps Freemium: Filtro múltiple, proyección y ordenación"""
+    print(f"\nCONSULTA 2: 'Carrileadas' (Victorias con más de {min_kills} Kills, ordenadas por Oro)...")
+    
+    # Aseguramos formato numérico y texto
+    df['KILLS'] = pd.to_numeric(df['KILLS'], errors='coerce')
+    df['GOLDEARNED'] = pd.to_numeric(df['GOLDEARNED'], errors='coerce')
+    df['WIN'] = df['WIN'].astype(str).str.lower()
+    
+    inicio = time.time()
+    
+    # Filtro múltiple usando la variable (min_kills)
+    resultado = df[(df['WIN'] == 'true') & (df['KILLS'] > min_kills)]
+    # Ordenación descendente
+    resultado = resultado.sort_values(by='GOLDEARNED', ascending=False)
+    
+    tiempo_ms = (time.time() - inicio) * 1000
+    print(f"Tiempo de ejecución: {tiempo_ms:.2f} ms")
+    return resultado[['CHAMPION', 'WIN', 'KILLS', 'GOLDEARNED']].head(5)
+
+
+def consulta_3_conteo_categorias():
+    """Conteo Total: Agrupación Equivalente a GROUP BY CHAMPION"""
+    print("\nCONSULTA 3: Conteo Total de Partidas por Campeón (Top 5)...")
+    inicio = time.time()
+    
+    # Agrupación y conteo rápido
+    resultado = df['CHAMPION'].value_counts()
+    
+    tiempo_ms = (time.time() - inicio) * 1000
+    print(f"Tiempo de ejecución: {tiempo_ms:.2f} ms")
+    return resultado.head(5)
+
+
+# --- 3. EJECUCIÓN CON VARIABLES POR CONSOLA ---
+if __name__ == "__main__":
+    print("="*50)
+    print(" SCRIPT DE CONSULTAS DIRECTAS AL CSV (PANDAS)")
+    print("="*50)
+    
+    # Ejecutamos la Roja 1 pidiendo la variable al usuario
+    var_campeon = input("1. Introduce un campeón para buscar (ej. Ahri, Garen, Blitzcrank): ")
+    print(consulta_1_filtro_categoria(var_campeon))
+    
+    # Ejecutamos la Roja 2 pidiendo la variable al usuario
+    var_kills = int(input("\n2. Introduce el mínimo de kills para considerar 'Carrileada' (ej. 10): "))
+    print(consulta_2_carrileadas(var_kills))
+    
+    # Ejecutamos la Roja 3 (es general, no requiere variable)
+    print(consulta_3_conteo_categorias())
