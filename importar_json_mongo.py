@@ -26,12 +26,12 @@ for tarea in TAREAS_IMPORTACION:
     JSON_PATH = tarea["ruta"]
     COLECCION = tarea["coleccion"]
     
-    print(f"\n🚀 Procesando archivo: {JSON_PATH} -> Colección: {COLECCION}")
+    print(f"\nProcesando archivo: {JSON_PATH} -> Colección: {COLECCION}")
     col = db[COLECCION]
     
     # Limpiar solo esta colección específica
     col.drop()
-    print(f'  ✓ Colección `{COLECCION}` preparada.')
+    print(f'  Colección `{COLECCION}` preparada.')
 
     t0 = time.time()
     total = 0
@@ -40,7 +40,7 @@ for tarea in TAREAS_IMPORTACION:
         with open(JSON_PATH, 'r', encoding='utf-8') as f:
             datos = json.load(f)
     except FileNotFoundError:
-        print(f"  ❌ ERROR: No se encontró el archivo {JSON_PATH}. Saltando...")
+        print(f"  ERROR: No se encontró el archivo {JSON_PATH}. Saltando...")
         continue
 
     # Aceptar tanto lista como objeto
@@ -68,7 +68,7 @@ for tarea in TAREAS_IMPORTACION:
         total += len(lote)
 
     t1 = time.time()
-    print(f'\n  ✅ Completado: {total:,} documentos en {t1 - t0:.2f}s')
+    print(f'\n  Completado: {total:,} documentos en {t1 - t0:.2f}s')
 
 client.close()
-print(f'\n🏁 ¡Toda la importación de MongoDB ha finalizado!')
+print(f'\n¡Toda la importación de MongoDB ha finalizado!')

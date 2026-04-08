@@ -29,7 +29,7 @@ for tarea in TAREAS_IMPORTACION:
     CSV_PATH = tarea["ruta"]
     TABLA = tarea["tabla"]
     
-    print(f"\n🚀 Procesando archivo: {CSV_PATH} -> Tabla: {TABLA}")
+    print(f"\nProcesando archivo: {CSV_PATH} -> Tabla: {TABLA}")
     
     # 1. Leer cabecera
     try:
@@ -37,7 +37,7 @@ for tarea in TAREAS_IMPORTACION:
             reader = csv.reader(f)
             columnas = next(reader)
     except FileNotFoundError:
-        print(f"  ❌ ERROR: No se encontró el archivo {CSV_PATH}. Saltando...")
+        print(f"  ERROR: No se encontró el archivo {CSV_PATH}. Saltando...")
         continue
 
     # Limpiar columnas
@@ -53,7 +53,7 @@ for tarea in TAREAS_IMPORTACION:
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     """)
     con.commit()
-    print(f'  ✓ Tabla `{TABLA}` creada.')
+    print(f'  Tabla `{TABLA}` creada.')
 
     # 3. Insertar datos
     placeholders = ', '.join(['%s'] * len(col_limpias))
@@ -82,8 +82,8 @@ for tarea in TAREAS_IMPORTACION:
             total += len(lote)
 
     t1 = time.time()
-    print(f'\n  ✅ Completado: {total:,} filas en {t1 - t0:.2f}s')
+    print(f'\n  Completado: {total:,} filas en {t1 - t0:.2f}s')
 
 cur.close()
 con.close()
-print("\n🏁 ¡Toda la importación de MySQL ha finalizado!")
+print("\n¡Toda la importación de MySQL ha finalizado!")
